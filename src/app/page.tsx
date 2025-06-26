@@ -38,9 +38,25 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
-        <h1 className="text-2xl font-bold text-center text-gray-800 mb-6">
-          Todo App
-        </h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold text-gray-800">
+            Todo App
+          </h1>
+          <div className="flex gap-2">
+            <a
+              href="/login"
+              className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              ログイン
+            </a>
+            <a
+              href="/register"
+              className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600"
+            >
+              登録
+            </a>
+          </div>
+        </div>
         
         <TodoInput
           value={inputText}
