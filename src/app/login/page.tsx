@@ -1,7 +1,7 @@
-import Link from "next/link";
-import { login } from "./actions";
+import Link from 'next/link';
+import { login } from './actions';
 
-export default function LoginPage() {
+export default async function LoginPage({ searchParams }: { searchParams: { message: string } }) {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
@@ -10,11 +10,8 @@ export default function LoginPage() {
             アカウントにログイン
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            アカウントをお持ちでない方は{" "}
-            <Link
-              href="/register"
-              className="font-medium text-blue-600 hover:text-blue-500"
-            >
+            アカウントをお持ちでない方は{' '}
+            <Link href="/register" className="font-medium text-blue-600 hover:text-blue-500">
               こちらから登録
             </Link>
           </p>
@@ -51,12 +48,19 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <button
-            formAction={login}
-            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            ログイン
-          </button>
+          <div>
+            <button
+              formAction={login}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              ログイン
+            </button>
+          </div>
+          {searchParams?.message && (
+            <p className="mt-4 p-4 bg-blue-50 text-blue-600 text-center rounded-md">
+              {searchParams.message}
+            </p>
+          )}
         </form>
       </div>
     </div>

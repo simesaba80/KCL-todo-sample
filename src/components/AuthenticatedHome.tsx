@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { createClient } from '@/utils/supabase/client';
+import axiosInstance from '@/utils/axios'; // Import axios instance
 import TodoInput from '@/components/TodoInput';
 import TodoList from '@/components/TodoList';
 import { Todo } from '@/types/todo';
@@ -14,32 +15,29 @@ interface AuthenticatedHomeProps {
 export default function AuthenticatedHome({ user }: AuthenticatedHomeProps) {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [inputText, setInputText] = useState('');
-  const supabase = createClient();
+  const supabase = createClient(); // Still needed for real-time
+
+  // Fetch todos using axios
+  const fetchTodos = async () => {
+    try {
+      const response = await axiosInstance.get('/todos?select=*&order=created_at.asc');
+      setTodos(response.data || []);
+    } catch (error) {
+      console.error('Error fetching todos:', error);
+    }
+  };
 
   useEffect(() => {
-    const fetchTodos = async () => {
-      const { data: todos, error } = await supabase
-        .from('todos')
-        .select('*')
-        .order('created_at', { ascending: true });
-
-      if (error) {
-        console.error('Error fetching todos:', error);
-      } else {
-        setTodos(todos || []);
-      }
-    };
-
     fetchTodos();
 
+    // Real-time subscription remains the same
     const channel = supabase
       .channel('todos')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'todos' },
         (payload) => {
-          // console.log('Change received!', payload);
-          fetchTodos(); // データを再取得してUIを更新
+          fetchTodos(); // Re-fetch data on change
         }
       )
       .subscribe();
@@ -49,48 +47,44 @@ export default function AuthenticatedHome({ user }: AuthenticatedHomeProps) {
     };
   }, [supabase]);
 
+  // Add todo using axios
   const addTodo = async () => {
     if (inputText.trim() !== '') {
-      const { data, error } = await supabase
-        .from('todos')
-        .insert([{ todo_text: inputText.trim(), user_id: user.id }])
-        .select();
-
-      if (error) {
-        console.error('Error adding todo:', error);
-      } else if (data) {
-        // setTodos((prevTodos) => [...prevTodos, ...data]);
+      try {
+        await axiosInstance.post('/todos', {
+          todo_text: inputText.trim(),
+          user_id: user.id,
+        });
         setInputText('');
+        // Real-time will handle the UI update
+      } catch (error) {
+        console.error('Error adding todo:', error);
       }
     }
   };
 
+  // Delete todo using axios
   const deleteTodo = async (id: string) => {
-    const { error } = await supabase.from('todos').delete().eq('id', id);
-
-    if (error) {
+    try {
+      await axiosInstance.delete(`/todos?id=eq.${id}`);
+      // Real-time will handle the UI update
+    } catch (error) {
       console.error('Error deleting todo:', error);
-    } else {
-      // setTodos((prevTodos) => prevTodos.filter((todo) => todo.id !== id));
     }
   };
 
+  // Toggle todo using axios
   const toggleTodo = async (id: string) => {
     const todoToToggle = todos.find((todo) => todo.id === id);
     if (!todoToToggle) return;
 
-    const { data, error } = await supabase
-      .from('todos')
-      .update({ completed: !todoToToggle.completed })
-      .eq('id', id)
-      .select();
-
-    if (error) {
+    try {
+      await axiosInstance.patch(`/todos?id=eq.${id}`, {
+        completed: !todoToToggle.completed,
+      });
+      // Real-time will handle the UI update
+    } catch (error) {
       console.error('Error toggling todo:', error);
-    } else if (data) {
-      // setTodos((prevTodos) =>
-      //   prevTodos.map((todo) => (todo.id === id ? { ...todo, ...data[0] } : todo))
-      // );
     }
   };
 
