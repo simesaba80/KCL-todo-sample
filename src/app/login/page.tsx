@@ -1,5 +1,5 @@
-import Link from 'next/link';
-import { login, signup } from './actions';
+import Link from "next/link";
+import { login } from "./actions";
 
 export default function LoginPage() {
   return (
@@ -10,8 +10,11 @@ export default function LoginPage() {
             アカウントにログイン
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            アカウントをお持ちでない方は{' '}
-            <Link href="/register" className="font-medium text-blue-600 hover:text-blue-500">
+            アカウントをお持ちでない方は{" "}
+            <Link
+              href="/register"
+              className="font-medium text-blue-600 hover:text-blue-500"
+            >
               こちらから登録
             </Link>
           </p>
@@ -48,20 +51,12 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="flex space-x-4">
-            <button
-              formAction={login}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              ログイン
-            </button>
-            <button
-              formAction={signup}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-blue-600 bg-white border-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              サインアップ
-            </button>
-          </div>
+          <button
+            formAction={login}
+            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            ログイン
+          </button>
         </form>
       </div>
     </div>

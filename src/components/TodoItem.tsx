@@ -1,12 +1,13 @@
+import { Todo } from '../types/todo';
+
 interface TodoItemProps {
-  id: number;
-  text: string;
-  completed: boolean;
-  onToggle: (id: number) => void;
-  onDelete: (id: number) => void;
+  todo: Todo;
+  onToggle: (id: string) => void;
+  onDelete: (id: string) => void;
 }
 
-export default function TodoItem({ id, text, completed, onToggle, onDelete }: TodoItemProps) {
+export default function TodoItem({ todo, onToggle, onDelete }: TodoItemProps) {
+  const { id, todo_text, completed } = todo;
   return (
     <div className="flex items-center gap-3 p-3 border border-gray-200 rounded-md hover:bg-gray-50 transition-colors">
       <input
@@ -22,7 +23,7 @@ export default function TodoItem({ id, text, completed, onToggle, onDelete }: To
             : 'text-gray-800'
         }`}
       >
-        {text}
+        {todo_text}
       </span>
       <button
         onClick={() => onDelete(id)}

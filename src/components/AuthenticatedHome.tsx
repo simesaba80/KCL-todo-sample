@@ -1,15 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
+import { createClient } from '@/utils/supabase/client';
 import TodoInput from '@/components/TodoInput';
 import TodoList from '@/components/TodoList';
-
-interface Todo {
-  id: number;
-  text: string;
-  completed: boolean;
-}
+import { Todo } from '@/types/todo';
 
 interface AuthenticatedHomeProps {
   user: User;
@@ -18,26 +14,84 @@ interface AuthenticatedHomeProps {
 export default function AuthenticatedHome({ user }: AuthenticatedHomeProps) {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [inputText, setInputText] = useState('');
+  const supabase = createClient();
 
-  const addTodo = () => {
+  useEffect(() => {
+    const fetchTodos = async () => {
+      const { data: todos, error } = await supabase
+        .from('todos')
+        .select('*')
+        .order('created_at', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching todos:', error);
+      } else {
+        setTodos(todos || []);
+      }
+    };
+
+    fetchTodos();
+
+    const channel = supabase
+      .channel('todos')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'todos' },
+        (payload) => {
+          // console.log('Change received!', payload);
+          fetchTodos(); // データを再取得してUIを更新
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [supabase]);
+
+  const addTodo = async () => {
     if (inputText.trim() !== '') {
-      setTodos([...todos, {
-        id: Date.now(),
-        text: inputText.trim(),
-        completed: false
-      }]);
-      setInputText('');
+      const { data, error } = await supabase
+        .from('todos')
+        .insert([{ todo_text: inputText.trim(), user_id: user.id }])
+        .select();
+
+      if (error) {
+        console.error('Error adding todo:', error);
+      } else if (data) {
+        // setTodos((prevTodos) => [...prevTodos, ...data]);
+        setInputText('');
+      }
     }
   };
 
-  const deleteTodo = (id: number) => {
-    setTodos(todos.filter(todo => todo.id !== id));
+  const deleteTodo = async (id: string) => {
+    const { error } = await supabase.from('todos').delete().eq('id', id);
+
+    if (error) {
+      console.error('Error deleting todo:', error);
+    } else {
+      // setTodos((prevTodos) => prevTodos.filter((todo) => todo.id !== id));
+    }
   };
 
-  const toggleTodo = (id: number) => {
-    setTodos(todos.map(todo =>
-      todo.id === id ? { ...todo, completed: !todo.completed } : todo
-    ));
+  const toggleTodo = async (id: string) => {
+    const todoToToggle = todos.find((todo) => todo.id === id);
+    if (!todoToToggle) return;
+
+    const { data, error } = await supabase
+      .from('todos')
+      .update({ completed: !todoToToggle.completed })
+      .eq('id', id)
+      .select();
+
+    if (error) {
+      console.error('Error toggling todo:', error);
+    } else if (data) {
+      // setTodos((prevTodos) =>
+      //   prevTodos.map((todo) => (todo.id === id ? { ...todo, ...data[0] } : todo))
+      // );
+    }
   };
 
   return (
@@ -54,7 +108,7 @@ export default function AuthenticatedHome({ user }: AuthenticatedHomeProps) {
             >
               プロフィール
             </a>
-            <form action="/auth/signout" method="post" className="inline">
+            <form action="/api/auth/signout" method="post" className="inline">
               <button
                 type="submit"
                 className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
