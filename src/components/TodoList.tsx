@@ -1,15 +1,10 @@
+import { Todo } from '../types/todo';
 import TodoItem from './TodoItem';
-
-interface Todo {
-  id: number;
-  text: string;
-  completed: boolean;
-}
 
 interface TodoListProps {
   todos: Todo[];
-  onToggle: (id: number) => void;
-  onDelete: (id: number) => void;
+  onToggle: (id: string) => void;
+  onDelete: (id: string) => void;
 }
 
 export default function TodoList({ todos, onToggle, onDelete }: TodoListProps) {
@@ -26,9 +21,7 @@ export default function TodoList({ todos, onToggle, onDelete }: TodoListProps) {
       {todos.map(todo => (
         <TodoItem
           key={todo.id}
-          id={todo.id}
-          text={todo.text}
-          completed={todo.completed}
+          todo={todo}
           onToggle={onToggle}
           onDelete={onDelete}
         />

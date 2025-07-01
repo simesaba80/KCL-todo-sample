@@ -1,7 +1,7 @@
 import Link from 'next/link';
-import { login, signup } from './actions';
+import { login } from './actions';
 
-export default function LoginPage() {
+export default async function LoginPage({ searchParams }: { searchParams: { message: string } }) {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
@@ -48,20 +48,19 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="flex space-x-4">
+          <div>
             <button
               formAction={login}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               ログイン
             </button>
-            <button
-              formAction={signup}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-blue-600 bg-white border-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              サインアップ
-            </button>
           </div>
+          {searchParams?.message && (
+            <p className="mt-4 p-4 bg-blue-50 text-blue-600 text-center rounded-md">
+              {searchParams.message}
+            </p>
+          )}
         </form>
       </div>
     </div>

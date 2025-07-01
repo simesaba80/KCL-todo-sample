@@ -1,15 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
+import { createClient } from '@/utils/supabase/client';
+import axiosInstance from '@/utils/axios'; // Import axios instance
 import TodoInput from '@/components/TodoInput';
 import TodoList from '@/components/TodoList';
-
-interface Todo {
-  id: number;
-  text: string;
-  completed: boolean;
-}
+import { Todo } from '@/types/todo';
 
 interface AuthenticatedHomeProps {
   user: User;
@@ -18,26 +15,77 @@ interface AuthenticatedHomeProps {
 export default function AuthenticatedHome({ user }: AuthenticatedHomeProps) {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [inputText, setInputText] = useState('');
+  const supabase = createClient(); // Still needed for real-time
 
-  const addTodo = () => {
-    if (inputText.trim() !== '') {
-      setTodos([...todos, {
-        id: Date.now(),
-        text: inputText.trim(),
-        completed: false
-      }]);
-      setInputText('');
+  // Fetch todos using axios
+  const fetchTodos = async () => {
+    try {
+      const response = await axiosInstance.get('/todos?select=*&order=created_at.asc');
+      setTodos(response.data || []);
+    } catch (error) {
+      console.error('Error fetching todos:', error);
     }
   };
 
-  const deleteTodo = (id: number) => {
-    setTodos(todos.filter(todo => todo.id !== id));
+  useEffect(() => {
+    fetchTodos();
+
+    // Real-time subscription remains the same
+    const channel = supabase
+      .channel('todos')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'todos' },
+        (payload) => {
+          fetchTodos(); // Re-fetch data on change
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [supabase]);
+
+  // Add todo using axios
+  const addTodo = async () => {
+    if (inputText.trim() !== '') {
+      try {
+        await axiosInstance.post('/todos', {
+          todo_text: inputText.trim(),
+          user_id: user.id,
+        });
+        setInputText('');
+        fetchTodos(); // Re-fetch after adding
+      } catch (error) {
+        console.error('Error adding todo:', error);
+      }
+    }
   };
 
-  const toggleTodo = (id: number) => {
-    setTodos(todos.map(todo =>
-      todo.id === id ? { ...todo, completed: !todo.completed } : todo
-    ));
+  // Delete todo using axios
+  const deleteTodo = async (id: string) => {
+    try {
+      await axiosInstance.delete(`/todos?id=eq.${id}`);
+      fetchTodos(); // Re-fetch after deleting
+    } catch (error) {
+      console.error('Error deleting todo:', error);
+    }
+  };
+
+  // Toggle todo using axios
+  const toggleTodo = async (id: string) => {
+    const todoToToggle = todos.find((todo) => todo.id === id);
+    if (!todoToToggle) return;
+
+    try {
+      await axiosInstance.patch(`/todos?id=eq.${id}`, {
+        completed: !todoToToggle.completed,
+      });
+      fetchTodos(); // Re-fetch after toggling
+    } catch (error) {
+      console.error('Error toggling todo:', error);
+    }
   };
 
   return (
@@ -54,7 +102,7 @@ export default function AuthenticatedHome({ user }: AuthenticatedHomeProps) {
             >
               プロフィール
             </a>
-            <form action="/auth/signout" method="post" className="inline">
+            <form action="/api/auth/signout" method="post" className="inline">
               <button
                 type="submit"
                 className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
