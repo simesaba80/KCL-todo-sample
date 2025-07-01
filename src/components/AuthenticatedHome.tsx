@@ -56,7 +56,7 @@ export default function AuthenticatedHome({ user }: AuthenticatedHomeProps) {
           user_id: user.id,
         });
         setInputText('');
-        // Real-time will handle the UI update
+        fetchTodos(); // Re-fetch after adding
       } catch (error) {
         console.error('Error adding todo:', error);
       }
@@ -67,7 +67,7 @@ export default function AuthenticatedHome({ user }: AuthenticatedHomeProps) {
   const deleteTodo = async (id: string) => {
     try {
       await axiosInstance.delete(`/todos?id=eq.${id}`);
-      // Real-time will handle the UI update
+      fetchTodos(); // Re-fetch after deleting
     } catch (error) {
       console.error('Error deleting todo:', error);
     }
@@ -82,7 +82,7 @@ export default function AuthenticatedHome({ user }: AuthenticatedHomeProps) {
       await axiosInstance.patch(`/todos?id=eq.${id}`, {
         completed: !todoToToggle.completed,
       });
-      // Real-time will handle the UI update
+      fetchTodos(); // Re-fetch after toggling
     } catch (error) {
       console.error('Error toggling todo:', error);
     }
