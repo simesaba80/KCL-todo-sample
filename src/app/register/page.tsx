@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { signup } from './actions';
 
 export default async function RegisterPage({ searchParams }: { searchParams: { message: string } }) {
+  const query = await searchParams;
+  const message = query.message || null;
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
@@ -57,9 +59,9 @@ export default async function RegisterPage({ searchParams }: { searchParams: { m
               登録
             </button>
           </div>
-          {searchParams?.message && (
+          {message && (
             <p className="mt-4 p-4 bg-red-50 text-red-600 text-center rounded-md">
-              {searchParams.message}
+              {message}
             </p>
           )}
         </form>

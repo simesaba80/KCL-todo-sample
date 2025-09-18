@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { login } from './actions';
 
 export default async function LoginPage({ searchParams }: { searchParams: { message: string } }) {
+  const query = await searchParams;
+  const message = query.message || null;
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
@@ -56,9 +58,9 @@ export default async function LoginPage({ searchParams }: { searchParams: { mess
               ログイン
             </button>
           </div>
-          {searchParams?.message && (
+          {message && (
             <p className="mt-4 p-4 bg-blue-50 text-blue-600 text-center rounded-md">
-              {searchParams.message}
+              {message}
             </p>
           )}
         </form>
